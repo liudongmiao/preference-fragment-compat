@@ -375,7 +375,7 @@ public abstract class PreferenceFragment extends Fragment {
 
     };
 
-    private static void callVoidMethod(Object receiver, String methodName, Class<?>[] parameterTypes, Object[] args) {
+    public static void callVoidMethod(Object receiver, String methodName, Class<?>[] parameterTypes, Object[] args) {
         try {
             Method method = receiver.getClass().getDeclaredMethod(methodName, parameterTypes);
             method.setAccessible(true);
