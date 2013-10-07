@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Preference fragment padding, sides -->
+    <dimen name="preference_fragment_padding_side">32dp</dimen>
+    <integer name="preference_fragment_scrollbarStyle">0x0</integer> <!-- insideOverlay -->
+</resources>
