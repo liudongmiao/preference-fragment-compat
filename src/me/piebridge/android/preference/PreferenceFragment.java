@@ -17,8 +17,10 @@
 package me.piebridge.android.preference;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import me.piebridge.android.preference.R;
 import android.annotation.SuppressLint;
@@ -85,6 +87,13 @@ import android.widget.ListView;
  * As a convenience, this fragment implements a click listener for any
  * preference in the current hierarchy, see
  * {@link #onPreferenceTreeClick(PreferenceScreen, Preference)}.
+ * 
+ * <div class="special reference">
+ * <h3>Developer Guides</h3>
+ * <p>For information about using {@code PreferenceFragment},
+ * read the <a href="{@docRoot}guide/topics/ui/settings.html">Settings</a>
+ * guide.</p>
+ * </div>
  *
  * <a name="SampleCode"></a>
  * <h3>Sample Code</h3>
@@ -160,6 +169,7 @@ public abstract class PreferenceFragment extends Fragment {
         mPreferenceManager = callConstructor(PreferenceManager.class,
             new Class[] { Activity.class, int.class },
             new Object[] { getActivity(), FIRST_REQUEST_CODE });
+        // FIXME: mPreferenceManager.setFragment(this);
     }
 
     @Override
@@ -193,6 +203,22 @@ public abstract class PreferenceFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        // FIXME: mPreferenceManager.setOnPreferenceTreeClickListener(this);
+        try {
+            Class<?> clazz = Class.forName("android.preference.PreferenceManager$OnPreferenceTreeClickListener");
+            Object proxy = Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz }, new InvocationHandler() {
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    if (method.getName().equals("onPreferenceTreeClick")) {
+                        return onPreferenceTreeClick((PreferenceScreen) args[0], (Preference) args[1]);
+                    }
+                    return null;
+                }
+            });
+            callVoidMethod(mPreferenceManager, "setOnPreferenceTreeClickListener", new Class[] { clazz }, new Object[] { proxy });
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -200,6 +226,13 @@ public abstract class PreferenceFragment extends Fragment {
         super.onStop();
         // FIXME: mPreferenceManager.dispatchActivityStop();
         callVoidMethod(mPreferenceManager, "dispatchActivityStop", null, null);
+        // FIXME: mPreferenceManager.setOnPreferenceTreeClickListener(null);
+        try {
+            Class<?> clazz = Class.forName("android.preference.PreferenceManager$OnPreferenceTreeClickListener");
+            callVoidMethod(mPreferenceManager, "setOnPreferenceTreeClickListener", new Class[] { clazz }, new Object[] { this });
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -298,10 +331,24 @@ public abstract class PreferenceFragment extends Fragment {
         requirePreferenceManager();
 
         // FIXME: setPreferenceScreen(mPreferenceManager.inflateFromResource(getActivity(),
-        //         preferencesResId, getPreferenceScreen()));
+        //        preferencesResId, getPreferenceScreen()));
         setPreferenceScreen(callReturnMethod(mPreferenceManager, "inflateFromResource", PreferenceScreen.class,
             new Class[] { Context.class, int.class, PreferenceScreen.class },
             new Object[] { getActivity(), preferencesResId, getPreferenceScreen() }));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen,
+            Preference preference) {
+        // FIXME: preference.getFragment()
+        if (/*preference.getFragment() != null &&*/
+                getActivity() instanceof OnPreferenceStartFragmentCallback) {
+            return ((OnPreferenceStartFragmentCallback)getActivity()).onPreferenceStartFragment(
+                    this, preference);
+        }
+        return false;
     }
 
     /**
@@ -370,6 +417,15 @@ public abstract class PreferenceFragment extends Fragment {
 
         @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
+            Object selectedItem = mList.getSelectedItem();
+            if (selectedItem instanceof Preference) {
+                View selectedView = mList.getSelectedView();
+                // FIXME : return ((Preference)selectedItem).onKey(
+                //                selectedView, keyCode, event);
+                return callReturnMethod(selectedItem, "onKey", Boolean.class,
+                            new Class[] { View.class, int.class, KeyEvent.class },
+                            new Object[] { selectedView, keyCode, event });
+            }
             return false;
         }
 
