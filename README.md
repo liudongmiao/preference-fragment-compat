@@ -2,8 +2,6 @@ Compatible package for [android.preference.PreferenceFragment](http://developer.
 
 ## How to Use
 
-1. Add the library to your project. You can compile from source, or just use the [binary](preference-fragment-compat.jar).
+1. Add the library to your project. You should compile from source, as it has extra resources.
 
-2. Add the android support library `android-support-v4.jar`. You can get it from http://developer.android.com/tools/support-library/index.html .
-
-3. Change `android.preference.PreferenceFragment` to `me.piebridge.android.preference.PreferenceFragment`.
+2. Change `android.preference.PreferenceFragment` to `me.piebridge.android.preference.PreferenceFragment`.
