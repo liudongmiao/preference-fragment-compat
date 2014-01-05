@@ -229,7 +229,7 @@ public abstract class PreferenceFragment extends Fragment {
         // FIXME: mPreferenceManager.setOnPreferenceTreeClickListener(null);
         try {
             Class<?> clazz = Class.forName("android.preference.PreferenceManager$OnPreferenceTreeClickListener");
-            callVoidMethod(mPreferenceManager, "setOnPreferenceTreeClickListener", new Class[] { clazz }, new Object[] { this });
+            callVoidMethod(mPreferenceManager, "setOnPreferenceTreeClickListener", new Class[] { clazz }, new Object[] { null });
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
