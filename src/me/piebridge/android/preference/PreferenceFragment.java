@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import me.piebridge.android.preference.R;
+import org.xmlpull.v1.XmlPullParser;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.support.v4.app.Fragment;
@@ -36,6 +36,7 @@ import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -172,11 +173,60 @@ public abstract class PreferenceFragment extends Fragment {
         // FIXME: mPreferenceManager.setFragment(this);
     }
 
+    public static final String LAYOUT =
+        "AwAIABgEAAABABwA0AEAABQAAAAAAAAAAAEAAGwAAAAAAAAAAAAAAA4AAAAeAAAALQAAADoAAAA/" +
+        "AAAATwAAAFwAAABsAAAAegAAAIkAAACaAAAAqgAAAL4AAADPAAAA8gAAAPwAAAApAQAALAEAAEoB" +
+        "AAALC29yaWVudGF0aW9uAA0NbGF5b3V0X2hlaWdodAAMDGxheW91dF93aWR0aAAKCmJhY2tncm91" +
+        "bmQAAgJpZAANDWxheW91dF93ZWlnaHQACgpwYWRkaW5nVG9wAA0NcGFkZGluZ0JvdHRvbQALC3Bh" +
+        "ZGRpbmdMZWZ0AAwMcGFkZGluZ1JpZ2h0AA4Oc2Nyb2xsYmFyU3R5bGUADQ1jbGlwVG9QYWRkaW5n" +
+        "ABERZHJhd1NlbGVjdG9yT25Ub3AADg5jYWNoZUNvbG9ySGludAAgIHNjcm9sbGJhckFsd2F5c0Ry" +
+        "YXdWZXJ0aWNhbFRyYWNrAAcHYW5kcm9pZAAqKmh0dHA6Ly9zY2hlbWFzLmFuZHJvaWQuY29tL2Fw" +
+        "ay9yZXMvYW5kcm9pZAAAAAAbG2FuZHJvaWQud2lkZ2V0LkxpbmVhckxheW91dAAXF2FuZHJvaWQu" +
+        "d2lkZ2V0Lkxpc3RWaWV3AIABCABEAAAAxAABAfUAAQH0AAEB1AABAdAAAQGBAQEB1wABAdkAAQHW" +
+        "AAEB2AABAX8AAQHrAAEB/AABAQEBAQFpAAEBAAEQABgAAAACAAAA/////w8AAAAQAAAAAgEQAHQA" +
+        "AAACAAAA//////////8SAAAAFAAUAAQAAAAAAAAAEAAAAAAAAAD/////CAAAEAEAAAAQAAAAAwAA" +
+        "AP////8IAAABDQAGARAAAAACAAAA/////wgAABD/////EAAAAAEAAAD/////CAAAEP////8CARAA" +
+        "KAEAAAgAAAD//////////xMAAAAUABQADQAAAAAAAAAQAAAADgAAAP////8IAAAS/////xAAAAAK" +
+        "AAAA/////wgAABEAAAACEAAAAAQAAAD/////CAAAAQoAAgEQAAAACAAAAP////8IAAAFARAAABAA" +
+        "AAAGAAAA/////wgAAAUBAAAAEAAAAAkAAAD/////CAAABQEQAAAQAAAABwAAAP////8IAAAFAQAA" +
+        "ABAAAAALAAAA/////wgAABIAAAAAEAAAAAIAAAD/////CAAAEP////8QAAAAAQAAAP////8IAAAF" +
+        "AAAAABAAAAAMAAAA/////wgAABIAAAAAEAAAAA0AAAD/////CAAAAQ0ABgEQAAAABQAAAP////8I" +
+        "AAAEAACAPwMBEAAYAAAAFAAAAP//////////EwAAAAMBEAAYAAAAFgAAAP//////////EgAAAAEB" +
+        "EAAYAAAAFgAAAP////8PAAAAEAAAAA==";
+
+    /**
+     * return XmlPullParser
+     * @param xml compiled XML encoded in base64
+     * @return XmlPullParser
+     */
+     public static XmlPullParser getParser(String xml) {
+        try {
+            byte[] data = Base64.decode(xml, Base64.DEFAULT);
+
+            // XmlBlock block = new XmlBlock(LAYOUT.getBytes("UTF-8"));
+            Class<?> clazz = Class.forName("android.content.res.XmlBlock");
+            Constructor<?> constructor = clazz.getDeclaredConstructor(byte[].class);
+            constructor.setAccessible(true);
+            Object block = constructor.newInstance(data);
+
+            // XmlPullParser parser = block.newParser();
+            Method method = clazz.getDeclaredMethod("newParser");
+            method.setAccessible(true);
+            return (XmlPullParser) method.invoke(block);
+        } catch (ClassNotFoundException e) {
+        } catch (NoSuchMethodException e) {
+        } catch (IllegalArgumentException e) {
+        } catch (java.lang.InstantiationException e) {
+        } catch (IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+        }
+        return null;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.preference_list_fragment, container,
-                false);
+        return inflater.inflate(getParser(LAYOUT), container, false);
     }
 
     @Override
